@@ -1,0 +1,24 @@
+# React
+frontend/node_modules/
+frontend/build/
+frontend/.env
+
+# Python / FastAPI
+backend/.venv/
+backend/venv/
+backend/__pycache__/
+backend/**/__pycache__/
+backend/.env
+*.pyc
+
+# Upload files
+backend/uploads/
+
+# Database
+*.db
+*.sqlite3
+
+# Editor / OS
+.vscode/
+.DS_Store
+Thumbs.db
