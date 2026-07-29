@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 
 from app.database import engine, Base
 
@@ -17,8 +18,6 @@ from app.routers.favorites import router as favorites_router
 from app.routers.ingredients import router as ingredients_router
 from app.routers.likes import router as likes_router
 
-from fastapi.staticfiles import StaticFiles
-
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
@@ -30,6 +29,7 @@ app.add_middleware(
     allow_origins=[
         "http://localhost:3000",
         "http://127.0.0.1:3000",
+        "https://dependable-dedication-production.up.railway.app",
     ],
     allow_credentials=True,
     allow_methods=["*"],
@@ -42,6 +42,7 @@ app.include_router(posts_router)
 app.include_router(favorites_router)
 app.include_router(ingredients_router)
 app.include_router(likes_router)
+
 
 @app.get("/")
 def root():
