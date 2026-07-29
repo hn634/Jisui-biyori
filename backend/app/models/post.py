@@ -22,3 +22,8 @@ class Post(Base):
 
     user = relationship("User", back_populates="posts")
     photos = relationship("Photo", back_populates="post")
+    likes = relationship(
+        "Like",
+        back_populates="post",
+        cascade="all, delete-orphan",
+    )

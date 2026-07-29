@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
@@ -112,6 +114,7 @@ def update_post(
 
     post.memo = post_data.memo
     post.is_public = post_data.is_public
+    post.updated_at = datetime.utcnow()
 
     db.commit()
     db.refresh(post)
@@ -135,6 +138,9 @@ def delete_post(
             status_code=404,
             detail="投稿が見つかりません"
         )
+
+    for photo in post.photos:
+        photo.post_id = None
 
     db.delete(post)
     db.commit()

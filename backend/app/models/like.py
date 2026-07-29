@@ -16,7 +16,7 @@ class Like(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
 
     user = relationship("User")
-    post = relationship("Post")
+    post = relationship("Post", back_populates="likes")
 
     __table_args__ = (
         UniqueConstraint("user_id", "post_id", name="unique_user_post_like"),

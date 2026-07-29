@@ -122,8 +122,12 @@ def delete_photo(
             detail="写真が見つかりません",
         )
 
+    filename = Path(photo.photo_url.replace("\\", "/")).name
+    file_path = UPLOAD_DIR / filename
+
     db.delete(photo)
     db.commit()
+    file_path.unlink(missing_ok=True)
 
     return {
         "message": "写真を削除しました",
