@@ -50,13 +50,6 @@ export default function Home() {
   };
 
   useEffect(() => {
-    const token = localStorage.getItem("access_token");
-
-    if (!token) {
-      navigate("/");
-      return;
-    }
-
     fetchPosts();
     fetchPhotos();
     fetchCurrentUser();
@@ -64,23 +57,13 @@ export default function Home() {
 
   const fetchPosts = async () => {
     try {
-      const token = localStorage.getItem("access_token");
-
-      const response = await api.get("/api/posts", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await api.get("/api/posts");
 
       setPosts(response.data);
 
       const likeResults = await Promise.all(
         response.data.map((post) =>
-          api.get(`/api/likes/${post.id}`, {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }),
+          api.get(`/api/likes/${post.id}`),
         ),
       );
 
@@ -110,13 +93,7 @@ export default function Home() {
 
   const fetchCurrentUser = async () => {
     try {
-      const token = localStorage.getItem("access_token");
-
-      const response = await api.get("/api/auth/me", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await api.get("/api/auth/me");
 
       setCurrentUser(response.data);
     } catch (error) {
@@ -133,32 +110,15 @@ export default function Home() {
     event.stopPropagation();
 
     try {
-      const token = localStorage.getItem("access_token");
       const likeInfo = likeMap[postId];
 
       if (likeInfo?.likedByMe) {
-        await api.delete(`/api/likes/${postId}`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+        await api.delete(`/api/likes/${postId}`);
       } else {
-        await api.post(
-          `/api/likes/${postId}`,
-          {},
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          },
-        );
+        await api.post(`/api/likes/${postId}`, {});
       }
 
-      const response = await api.get(`/api/likes/${postId}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await api.get(`/api/likes/${postId}`);
 
       setLikeMap((prevLikeMap) => ({
         ...prevLikeMap,

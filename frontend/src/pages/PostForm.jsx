@@ -23,19 +23,8 @@ export default function PostForm() {
 
     const fetchPostForEdit = async () => {
       try {
-        const token = localStorage.getItem("access_token");
-
-        if (!token) {
-          navigate("/");
-          return;
-        }
-
         const [postResponse, photosResponse] = await Promise.all([
-          api.get(`/api/posts/${postId}`, {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }),
+          api.get(`/api/posts/${postId}`),
           api.get("/api/photos"),
         ]);
 
@@ -79,25 +68,12 @@ export default function PostForm() {
 
   const handleSubmit = async () => {
     try {
-      const token = localStorage.getItem("access_token");
-
-      if (!token) {
-        alert("ログイン情報がありません");
-        navigate("/");
-        return;
-      }
-
       if (isEditMode) {
         await api.put(
           `/api/posts/${postId}`,
           {
             memo,
             is_public: isPublic,
-          },
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
           },
         );
 
@@ -113,12 +89,7 @@ export default function PostForm() {
 
         formData.append("file", photo);
 
-        const photoResponse = await api.post("/api/photos", formData, {
-          headers: {
-            "Content-Type": "multipart/form-data",
-            Authorization: `Bearer ${token}`,
-          },
-        });
+        const photoResponse = await api.post("/api/photos", formData);
 
         photoId = photoResponse.data.id;
       }
@@ -129,11 +100,6 @@ export default function PostForm() {
           memo,
           photo_id: photoId,
           is_public: isPublic,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
         },
       );
 

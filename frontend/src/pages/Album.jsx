@@ -11,28 +11,11 @@ export default function Album() {
   useEffect(() => {
     const fetchPhotos = async () => {
       try {
-        const token = localStorage.getItem("access_token");
-
-        if (!token) {
-          navigate("/");
-          return;
-        }
-
-        const response = await api.get("/api/photos", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+        const response = await api.get("/api/photos");
 
         setPhotos(response.data);
       } catch (error) {
         console.error(error);
-
-        if (error.response?.status === 401) {
-          alert("ログイン情報の有効期限が切れました。");
-          localStorage.removeItem("access_token");
-          navigate("/");
-        }
       }
     };
 

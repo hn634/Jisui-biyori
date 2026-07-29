@@ -12,40 +12,15 @@ export default function Ingredients() {
 
   const navigate = useNavigate();
 
-  const getAuthHeaders = () => {
-    const token = localStorage.getItem("access_token");
-
-    return {
-      Authorization: `Bearer ${token}`,
-    };
-  };
-
   const fetchIngredients = useCallback(async () => {
     try {
-      const token = localStorage.getItem("access_token");
-
-      if (!token) {
-        navigate("/");
-        return;
-      }
-
-      const response = await api.get("/api/ingredients", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await api.get("/api/ingredients");
 
       setIngredients(response.data);
     } catch (error) {
       console.error(error);
-
-      if (error.response?.status === 401) {
-        alert("ログイン情報の有効期限が切れました。");
-        localStorage.removeItem("access_token");
-        navigate("/");
-      }
     }
-  }, [navigate]);
+  }, []);
 
   useEffect(() => {
     fetchIngredients();
@@ -75,16 +50,11 @@ export default function Ingredients() {
         await api.put(
           `/api/ingredients/${editingIngredientId}`,
           ingredientData,
-          {
-            headers: getAuthHeaders(),
-          },
         );
 
         alert("調味料・食材を更新しました！");
       } else {
-        await api.post("/api/ingredients", ingredientData, {
-          headers: getAuthHeaders(),
-        });
+        await api.post("/api/ingredients", ingredientData);
 
         alert("調味料・食材を保存しました！");
       }
@@ -124,9 +94,7 @@ export default function Ingredients() {
     }
 
     try {
-      await api.delete(`/api/ingredients/${ingredientId}`, {
-        headers: getAuthHeaders(),
-      });
+      await api.delete(`/api/ingredients/${ingredientId}`);
 
       if (editingIngredientId === ingredientId) {
         resetForm();

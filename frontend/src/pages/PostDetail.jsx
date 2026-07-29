@@ -14,13 +14,7 @@ export default function PostDetail() {
   useEffect(() => {
     const fetchPost = async () => {
       try {
-        const token = localStorage.getItem("access_token");
-
-        const response = await api.get(`/api/posts/${postId}`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+        const response = await api.get(`/api/posts/${postId}`);
 
         setPost(response.data);
       } catch (error) {
@@ -50,13 +44,7 @@ export default function PostDetail() {
     }
 
     try {
-      const token = localStorage.getItem("access_token");
-
-      await api.delete(`/api/posts/${postId}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      await api.delete(`/api/posts/${postId}`);
 
       alert("投稿を削除しました");
       navigate("/home");
