@@ -770,6 +770,20 @@ h2 {
   letter-spacing: 0.1em;
 }
 
+.post-form-date {
+  width: 100%;
+  margin-bottom: 28px;
+  padding: 12px 8px;
+  box-sizing: border-box;
+  border: none;
+  border-bottom: 1px solid #c8b7aa;
+  outline: none;
+  background: transparent;
+  color: #4f3527;
+  font-family: inherit;
+  font-size: 16px;
+}
+
 .post-form-textarea {
   width: 100%;
   min-height: 150px;

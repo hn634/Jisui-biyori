@@ -134,7 +134,7 @@ export default function Home() {
   };
 
   const getPostDate = (post) => {
-    return new Date(post.cooked_date || post.created_at);
+    return new Date(`${post.cooked_date}T00:00:00`);
   };
 
   const getPostDay = (post) => {

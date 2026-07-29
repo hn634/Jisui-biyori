@@ -71,7 +71,7 @@ export default function PostDetail() {
 
   const postPhoto = photos.find((photo) => photo.post_id === post.id);
 
-  const postDate = new Date(post.cooked_date || post.created_at);
+  const postDate = new Date(`${post.cooked_date}T00:00:00`);
 
   const formattedDate = `${postDate.getFullYear()}年${
     postDate.getMonth() + 1

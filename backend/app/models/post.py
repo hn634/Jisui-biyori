@@ -1,6 +1,6 @@
-from sqlalchemy import Boolean, Column, Integer, Text, DateTime, ForeignKey, false
+from sqlalchemy import Boolean, Column, Date, DateTime, ForeignKey, Integer, Text, false
 from sqlalchemy.orm import relationship
-from datetime import datetime
+from datetime import date, datetime
 
 from app.database import Base
 
@@ -17,6 +17,7 @@ class Post(Base):
         default=False,
         server_default=false(),
     )
+    cooked_date = Column(Date, nullable=False, default=date.today)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow)
 

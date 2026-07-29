@@ -6,30 +6,44 @@ import { getPhotoUrl } from "../utils/photoUrl";
 
 export default function Album() {
   const [photos, setPhotos] = useState([]);
+  const [posts, setPosts] = useState([]);
   const navigate = useNavigate();
 
   useEffect(() => {
-    const fetchPhotos = async () => {
+    const fetchRecords = async () => {
       try {
-        const response = await api.get("/api/photos");
+        const [photosResponse, postsResponse] = await Promise.all([
+          api.get("/api/photos"),
+          api.get("/api/posts"),
+        ]);
 
-        setPhotos(response.data);
+        setPhotos(photosResponse.data);
+        setPosts(postsResponse.data);
       } catch (error) {
         console.error(error);
       }
     };
 
-    fetchPhotos();
+    fetchRecords();
   }, [navigate]);
 
+  const cookedDateByPostId = Object.fromEntries(
+    posts.map((post) => [post.id, post.cooked_date]),
+  );
+
   const groupedPhotos = [...photos]
-    .filter((photo) => photo.post_id && photo.created_at)
+    .filter((photo) => photo.post_id && cookedDateByPostId[photo.post_id])
+    .map((photo) => ({
+      ...photo,
+      cookedDate: cookedDateByPostId[photo.post_id],
+    }))
     .sort(
       (a, b) =>
-        new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
+        new Date(`${b.cookedDate}T00:00:00`).getTime() -
+        new Date(`${a.cookedDate}T00:00:00`).getTime(),
     )
     .reduce((groups, photo) => {
-      const date = new Date(photo.created_at);
+      const date = new Date(`${photo.cookedDate}T00:00:00`);
       const monthKey = `${date.getFullYear()}年${date.getMonth() + 1}月`;
 
       if (!groups[monthKey]) {

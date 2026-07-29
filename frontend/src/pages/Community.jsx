@@ -82,7 +82,7 @@ export default function Community() {
   };
 
   const formatDate = (dateText) => {
-    const date = new Date(dateText);
+    const date = new Date(`${dateText}T00:00:00`);
 
     return `${date.getFullYear()}年${date.getMonth() + 1}月${date.getDate()}日`;
   };
@@ -139,7 +139,7 @@ export default function Community() {
 
                     <div className="community-footer">
                       <span className="community-date">
-                        {formatDate(post.created_at)}
+                        {formatDate(post.cooked_date)}
                       </span>
 
                       <button
