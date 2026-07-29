@@ -35,13 +35,11 @@ export default function Home() {
 
   const handlePrevMonth = () => {
     setCurrentMonth(new Date(targetYear, targetMonth - 2, 1));
-
     setSelectedDay(null);
   };
 
   const handleNextMonth = () => {
     setCurrentMonth(new Date(targetYear, targetMonth, 1));
-
     setSelectedDay(null);
   };
 
@@ -192,6 +190,16 @@ export default function Home() {
         postDate.getDate() === day
       );
     });
+  };
+
+  const getPhotoUrl = (photoUrl) => {
+    if (!photoUrl) {
+      return "";
+    }
+
+    const normalizedPath = photoUrl.replaceAll("\\", "/").replace(/^\/+/, "");
+
+    return `${process.env.REACT_APP_API_BASE_URL}/${normalizedPath}`;
   };
 
   const displayedPosts = selectedDay
@@ -477,11 +485,8 @@ export default function Home() {
               >
                 {postPhoto && (
                   <img
-                    src={`http://127.0.0.1:8000/${postPhoto.photo_url.replace(
-                      "\\",
-                      "/",
-                    )}`}
-                    alt={postPhoto.original_filename}
+                    src={getPhotoUrl(postPhoto.photo_url)}
+                    alt={postPhoto.original_filename || "ごはんの写真"}
                     style={{
                       width: "100%",
                       borderRadius: "16px",
@@ -541,11 +546,8 @@ export default function Home() {
                     {postPhoto && (
                       <img
                         className="post-modal-image"
-                        src={`http://127.0.0.1:8000/${postPhoto.photo_url.replace(
-                          "\\",
-                          "/",
-                        )}`}
-                        alt={postPhoto.original_filename}
+                        src={getPhotoUrl(postPhoto.photo_url)}
+                        alt={postPhoto.original_filename || "ごはんの写真"}
                       />
                     )}
 

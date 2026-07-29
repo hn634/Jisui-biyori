@@ -102,11 +102,10 @@ export default function Album() {
                       onClick={() => navigate(`/detail/${photo.post_id}`)}
                     >
                       <img
-                        src={`http://127.0.0.1:8000/${photo.photo_url.replace(
-                          "\\",
-                          "/",
-                        )}`}
-                        alt=""
+                        src={`${process.env.REACT_APP_API_BASE_URL}/${photo.photo_url
+                          .replaceAll("\\", "/")
+                          .replace(/^\/+/, "")}`}
+                        alt={photo.original_filename || "ごはんの写真"}
                       />
                     </button>
                   ))}
