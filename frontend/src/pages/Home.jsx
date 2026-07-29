@@ -61,18 +61,25 @@ export default function Home() {
 
       setPosts(response.data);
 
-      const likeResults = await Promise.all(
-        response.data.map((post) =>
-          api.get(`/api/likes/${post.id}`),
-        ),
-      );
+      const postIds = response.data.map((post) => post.id);
+
+      if (postIds.length === 0) {
+        setLikeMap({});
+        return;
+      }
+
+      const likeResponse = await api.get("/api/likes", {
+        params: {
+          post_ids: postIds.join(","),
+        },
+      });
 
       const newLikeMap = {};
 
-      likeResults.forEach((result) => {
-        newLikeMap[result.data.post_id] = {
-          likeCount: result.data.like_count,
-          likedByMe: result.data.liked_by_me,
+      likeResponse.data.forEach((likeInfo) => {
+        newLikeMap[likeInfo.post_id] = {
+          likeCount: likeInfo.like_count,
+          likedByMe: likeInfo.liked_by_me,
         };
       });
 
