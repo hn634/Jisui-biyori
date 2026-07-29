@@ -156,6 +156,16 @@ export default function Community() {
     return `${date.getFullYear()}年${date.getMonth() + 1}月${date.getDate()}日`;
   };
 
+  const getPhotoUrl = (photoUrl) => {
+    if (!photoUrl) {
+      return "";
+    }
+
+    const normalizedPath = photoUrl.replaceAll("\\", "/").replace(/^\/+/, "");
+
+    return `${process.env.REACT_APP_API_BASE_URL}/${normalizedPath}`;
+  };
+
   return (
     <div className="album-page">
       <div className="album-card">
@@ -193,11 +203,8 @@ export default function Community() {
                 <div key={post.id} className="community-card">
                   {postPhoto ? (
                     <img
-                      src={`http://127.0.0.1:8000/${postPhoto.photo_url.replace(
-                        "\\",
-                        "/",
-                      )}`}
-                      alt=""
+                      src={getPhotoUrl(postPhoto.photo_url)}
+                      alt={postPhoto.original_filename || "ごはんの写真"}
                       className="community-image"
                     />
                   ) : (
