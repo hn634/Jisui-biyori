@@ -12,35 +12,15 @@ export default function FavoriteRecipes() {
 
   const navigate = useNavigate();
 
-  const getAuthHeaders = () => {
-    const token = localStorage.getItem("access_token");
-
-    return {
-      Authorization: `Bearer ${token}`,
-    };
-  };
-
   const fetchRecipes = useCallback(async () => {
     try {
-      const token = localStorage.getItem("access_token");
-
-      const response = await api.get("/api/favorites", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await api.get("/api/favorites");
 
       setRecipes(response.data);
     } catch (error) {
       console.error(error);
-
-      if (error.response?.status === 401) {
-        alert("ログイン情報の有効期限が切れました。");
-        localStorage.removeItem("access_token");
-        navigate("/");
-      }
     }
-  }, [navigate]);
+  }, []);
 
   useEffect(() => {
     fetchRecipes();
@@ -67,15 +47,11 @@ export default function FavoriteRecipes() {
 
     try {
       if (editingRecipeId) {
-        await api.put(`/api/favorites/${editingRecipeId}`, recipeData, {
-          headers: getAuthHeaders(),
-        });
+        await api.put(`/api/favorites/${editingRecipeId}`, recipeData);
 
         alert("お気に入りレシピを更新しました！");
       } else {
-        await api.post("/api/favorites", recipeData, {
-          headers: getAuthHeaders(),
-        });
+        await api.post("/api/favorites", recipeData);
 
         alert("お気に入りレシピを保存しました！");
       }
@@ -118,9 +94,7 @@ export default function FavoriteRecipes() {
     }
 
     try {
-      await api.delete(`/api/favorites/${recipeId}`, {
-        headers: getAuthHeaders(),
-      });
+      await api.delete(`/api/favorites/${recipeId}`);
 
       if (editingRecipeId === recipeId) {
         resetForm();

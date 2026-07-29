@@ -1,11 +1,13 @@
 import { FiEye, FiEyeOff } from "react-icons/fi";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import api from "../api/api";
 
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const navigate = useNavigate();
 
   const handleLogin = async () => {
     try {
@@ -14,13 +16,11 @@ export default function Login() {
         password,
       });
 
-      console.log(response.data);
-
       localStorage.setItem("access_token", response.data.access_token);
 
       alert("ログイン成功！");
 
-      window.location.href = "/home";
+      navigate("/home");
     } catch (error) {
       console.error(error);
 
@@ -257,9 +257,7 @@ export default function Login() {
         <button
           type="button"
           style={styles.signupButton}
-          onClick={() => {
-            window.location.href = "/signup";
-          }}
+          onClick={() => navigate("/signup")}
         >
           新規登録はこちら
         </button>

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { FiArrowLeft } from "react-icons/fi";
 import api from "../api/api";
+import { getPhotoUrl } from "../utils/photoUrl";
 
 export default function PostDetail() {
   const { postId } = useParams();
@@ -13,13 +14,7 @@ export default function PostDetail() {
   useEffect(() => {
     const fetchPost = async () => {
       try {
-        const token = localStorage.getItem("access_token");
-
-        const response = await api.get(`/api/posts/${postId}`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+        const response = await api.get(`/api/posts/${postId}`);
 
         setPost(response.data);
       } catch (error) {
@@ -49,13 +44,7 @@ export default function PostDetail() {
     }
 
     try {
-      const token = localStorage.getItem("access_token");
-
-      await api.delete(`/api/posts/${postId}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      await api.delete(`/api/posts/${postId}`);
 
       alert("投稿を削除しました");
       navigate("/home");
@@ -70,16 +59,6 @@ export default function PostDetail() {
     }
   };
 
-  const getPhotoUrl = (photoUrl) => {
-    if (!photoUrl) {
-      return "";
-    }
-
-    const normalizedPath = photoUrl.replaceAll("\\", "/").replace(/^\/+/, "");
-
-    return `${process.env.REACT_APP_API_BASE_URL}/${normalizedPath}`;
-  };
-
   if (!post) {
     return (
       <div className="post-detail-page">
@@ -92,7 +71,7 @@ export default function PostDetail() {
 
   const postPhoto = photos.find((photo) => photo.post_id === post.id);
 
-  const postDate = new Date(post.cooked_date || post.created_at);
+  const postDate = new Date(`${post.cooked_date}T00:00:00`);
 
   const formattedDate = `${postDate.getFullYear()}年${
     postDate.getMonth() + 1

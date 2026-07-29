@@ -10,6 +10,7 @@ import Album from "./pages/Album";
 import FavoriteRecipes from "./pages/FavoriteRecipes";
 import Ingredients from "./pages/Ingredients";
 import Community from "./pages/Community";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 function App() {
   return (
@@ -17,14 +18,70 @@ function App() {
       <Routes>
         <Route path="/" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
-        <Route path="/home" element={<Home />} />
-        <Route path="/post" element={<PostForm />} />
-        <Route path="/post/:postId/edit" element={<PostForm />} />
-        <Route path="/detail/:postId" element={<PostDetail />} />
-        <Route path="/album" element={<Album />} />
-        <Route path="/favorites" element={<FavoriteRecipes />} />
-        <Route path="/ingredients" element={<Ingredients />} />
-        <Route path="/community" element={<Community />} />
+        <Route
+          path="/home"
+          element={
+            <ProtectedRoute>
+              <Home />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/post"
+          element={
+            <ProtectedRoute>
+              <PostForm />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/post/:postId/edit"
+          element={
+            <ProtectedRoute>
+              <PostForm />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/detail/:postId"
+          element={
+            <ProtectedRoute>
+              <PostDetail />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/album"
+          element={
+            <ProtectedRoute>
+              <Album />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/favorites"
+          element={
+            <ProtectedRoute>
+              <FavoriteRecipes />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/ingredients"
+          element={
+            <ProtectedRoute>
+              <Ingredients />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/community"
+          element={
+            <ProtectedRoute>
+              <Community />
+            </ProtectedRoute>
+          }
+        />
       </Routes>
     </BrowserRouter>
   );

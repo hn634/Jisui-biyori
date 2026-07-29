@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 
@@ -14,6 +15,62 @@ router = APIRouter(
     prefix="/api/likes",
     tags=["Likes"]
 )
+
+
+@router.get("", response_model=list[LikeCountResponse])
+def get_like_counts(
+    post_ids: str = "",
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    if not post_ids:
+        return []
+
+    try:
+        parsed_post_ids = list(dict.fromkeys(
+            int(post_id.strip())
+            for post_id in post_ids.split(",")
+            if post_id.strip()
+        ))
+    except ValueError:
+        raise HTTPException(
+            status_code=400,
+            detail="投稿IDの形式が正しくありません"
+        )
+
+    if not parsed_post_ids or any(post_id <= 0 for post_id in parsed_post_ids):
+        raise HTTPException(
+            status_code=400,
+            detail="投稿IDの形式が正しくありません"
+        )
+
+    like_counts = dict(
+        db.query(Like.post_id, func.count(Like.id))
+        .filter(Like.post_id.in_(parsed_post_ids))
+        .group_by(Like.post_id)
+        .all()
+    )
+
+    liked_post_ids = {
+        post_id
+        for post_id, in (
+            db.query(Like.post_id)
+            .filter(
+                Like.post_id.in_(parsed_post_ids),
+                Like.user_id == current_user.id
+            )
+            .all()
+        )
+    }
+
+    return [
+        {
+            "post_id": post_id,
+            "like_count": like_counts.get(post_id, 0),
+            "liked_by_me": post_id in liked_post_ids
+        }
+        for post_id in parsed_post_ids
+    ]
 
 
 @router.post("/{post_id}", response_model=LikeResponse)

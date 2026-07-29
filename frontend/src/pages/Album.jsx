@@ -2,50 +2,48 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { FiArrowLeft } from "react-icons/fi";
 import api from "../api/api";
+import { getPhotoUrl } from "../utils/photoUrl";
 
 export default function Album() {
   const [photos, setPhotos] = useState([]);
+  const [posts, setPosts] = useState([]);
   const navigate = useNavigate();
 
   useEffect(() => {
-    const fetchPhotos = async () => {
+    const fetchRecords = async () => {
       try {
-        const token = localStorage.getItem("access_token");
+        const [photosResponse, postsResponse] = await Promise.all([
+          api.get("/api/photos"),
+          api.get("/api/posts"),
+        ]);
 
-        if (!token) {
-          navigate("/");
-          return;
-        }
-
-        const response = await api.get("/api/photos", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-
-        setPhotos(response.data);
+        setPhotos(photosResponse.data);
+        setPosts(postsResponse.data);
       } catch (error) {
         console.error(error);
-
-        if (error.response?.status === 401) {
-          alert("ログイン情報の有効期限が切れました。");
-          localStorage.removeItem("access_token");
-          navigate("/");
-        }
       }
     };
 
-    fetchPhotos();
+    fetchRecords();
   }, [navigate]);
 
+  const cookedDateByPostId = Object.fromEntries(
+    posts.map((post) => [post.id, post.cooked_date]),
+  );
+
   const groupedPhotos = [...photos]
-    .filter((photo) => photo.post_id && photo.created_at)
+    .filter((photo) => photo.post_id && cookedDateByPostId[photo.post_id])
+    .map((photo) => ({
+      ...photo,
+      cookedDate: cookedDateByPostId[photo.post_id],
+    }))
     .sort(
       (a, b) =>
-        new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
+        new Date(`${b.cookedDate}T00:00:00`).getTime() -
+        new Date(`${a.cookedDate}T00:00:00`).getTime(),
     )
     .reduce((groups, photo) => {
-      const date = new Date(photo.created_at);
+      const date = new Date(`${photo.cookedDate}T00:00:00`);
       const monthKey = `${date.getFullYear()}年${date.getMonth() + 1}月`;
 
       if (!groups[monthKey]) {
@@ -102,9 +100,7 @@ export default function Album() {
                       onClick={() => navigate(`/detail/${photo.post_id}`)}
                     >
                       <img
-                        src={`${process.env.REACT_APP_API_BASE_URL}/${photo.photo_url
-                          .replaceAll("\\", "/")
-                          .replace(/^\/+/, "")}`}
+                        src={getPhotoUrl(photo.photo_url)}
                         alt={photo.original_filename || "ごはんの写真"}
                       />
                     </button>

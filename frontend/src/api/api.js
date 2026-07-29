@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const api = axios.create({
-  baseURL: process.env.REACT_APP_API_BASE_URL || "http://127.0.0.1:8000",
+  baseURL: process.env.REACT_APP_API_BASE_URL,
 });
 
 api.interceptors.request.use((config) => {
@@ -13,5 +13,20 @@ api.interceptors.request.use((config) => {
 
   return config;
 });
+
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      localStorage.removeItem("access_token");
+
+      if (window.location.pathname !== "/") {
+        window.location.href = "/";
+      }
+    }
+
+    return Promise.reject(error);
+  },
+);
 
 export default api;

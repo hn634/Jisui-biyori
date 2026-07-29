@@ -1,5 +1,6 @@
 import { FiEye, FiEyeOff } from "react-icons/fi";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import api from "../api/api";
 
 export default function Signup() {
@@ -9,6 +10,7 @@ export default function Signup() {
 
   const [showPassword, setShowPassword] = useState(false);
   const [showPasswordConfirm, setShowPasswordConfirm] = useState(false);
+  const navigate = useNavigate();
 
   const handleSignup = async () => {
     if (!email || !password || !passwordConfirm) {
@@ -29,7 +31,7 @@ export default function Signup() {
 
       alert("新規登録が完了しました！");
 
-      window.location.href = "/";
+      navigate("/");
     } catch (error) {
       console.error(error);
 
@@ -258,9 +260,7 @@ export default function Signup() {
         <button
           type="button"
           style={styles.backButton}
-          onClick={() => {
-            window.location.href = "/";
-          }}
+          onClick={() => navigate("/")}
         >
           ログイン画面へ戻る
         </button>

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { FiArrowLeft } from "react-icons/fi";
 import api from "../api/api";
+import { getPhotoUrl } from "../utils/photoUrl";
 
 export default function Community() {
   const [posts, setPosts] = useState([]);
@@ -10,87 +11,50 @@ export default function Community() {
 
   const navigate = useNavigate();
 
-  const handleAuthError = useCallback(
-    (error) => {
-      if (error.response?.status === 401) {
-        alert("ログイン情報の有効期限が切れました。");
-        localStorage.removeItem("access_token");
-        navigate("/");
-        return true;
-      }
-
-      return false;
-    },
-    [navigate],
-  );
-
   const fetchCommunityPosts = useCallback(async () => {
     try {
-      const token = localStorage.getItem("access_token");
-
-      if (!token) {
-        navigate("/");
-        return;
-      }
-
-      const response = await api.get("/api/posts/community/all", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await api.get("/api/posts/community/all");
 
       setPosts(response.data);
 
-      const likeResults = await Promise.all(
-        response.data.map((post) =>
-          api.get(`/api/likes/${post.id}`, {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }),
-        ),
-      );
+      const postIds = response.data.map((post) => post.id);
+
+      if (postIds.length === 0) {
+        setLikeMap({});
+        return;
+      }
+
+      const likeResponse = await api.get("/api/likes", {
+        params: {
+          post_ids: postIds.join(","),
+        },
+      });
 
       const newLikeMap = {};
 
-      likeResults.forEach((result) => {
-        newLikeMap[result.data.post_id] = {
-          likeCount: result.data.like_count,
-          likedByMe: result.data.liked_by_me,
+      likeResponse.data.forEach((likeInfo) => {
+        newLikeMap[likeInfo.post_id] = {
+          likeCount: likeInfo.like_count,
+          likedByMe: likeInfo.liked_by_me,
         };
       });
 
       setLikeMap(newLikeMap);
     } catch (error) {
       console.error(error);
-
-      if (!handleAuthError(error)) {
-        alert("みんなの投稿を取得できませんでした");
-      }
+      alert("みんなの投稿を取得できませんでした");
     }
-  }, [handleAuthError, navigate]);
+  }, []);
 
   const fetchPhotos = useCallback(async () => {
     try {
-      const token = localStorage.getItem("access_token");
-
-      if (!token) {
-        navigate("/");
-        return;
-      }
-
-      const response = await api.get("/api/photos/community", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await api.get("/api/photos/community");
 
       setPhotos(response.data);
     } catch (error) {
       console.error(error);
-      handleAuthError(error);
     }
-  }, [handleAuthError, navigate]);
+  }, []);
 
   useEffect(() => {
     fetchCommunityPosts();
@@ -101,38 +65,15 @@ export default function Community() {
     event.stopPropagation();
 
     try {
-      const token = localStorage.getItem("access_token");
-
-      if (!token) {
-        navigate("/");
-        return;
-      }
-
       const likeInfo = likeMap[postId];
 
       if (likeInfo?.likedByMe) {
-        await api.delete(`/api/likes/${postId}`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+        await api.delete(`/api/likes/${postId}`);
       } else {
-        await api.post(
-          `/api/likes/${postId}`,
-          {},
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          },
-        );
+        await api.post(`/api/likes/${postId}`, {});
       }
 
-      const response = await api.get(`/api/likes/${postId}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await api.get(`/api/likes/${postId}`);
 
       setLikeMap((previousLikeMap) => ({
         ...previousLikeMap,
@@ -143,27 +84,14 @@ export default function Community() {
       }));
     } catch (error) {
       console.error(error);
-
-      if (!handleAuthError(error)) {
-        alert("いいねの処理に失敗しました");
-      }
+      alert("いいねの処理に失敗しました");
     }
   };
 
   const formatDate = (dateText) => {
-    const date = new Date(dateText);
+    const date = new Date(`${dateText}T00:00:00`);
 
     return `${date.getFullYear()}年${date.getMonth() + 1}月${date.getDate()}日`;
-  };
-
-  const getPhotoUrl = (photoUrl) => {
-    if (!photoUrl) {
-      return "";
-    }
-
-    const normalizedPath = photoUrl.replaceAll("\\", "/").replace(/^\/+/, "");
-
-    return `${process.env.REACT_APP_API_BASE_URL}/${normalizedPath}`;
   };
 
   return (
@@ -218,7 +146,7 @@ export default function Community() {
 
                     <div className="community-footer">
                       <span className="community-date">
-                        {formatDate(post.created_at)}
+                        {formatDate(post.cooked_date)}
                       </span>
 
                       <button

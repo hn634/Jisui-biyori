@@ -1,6 +1,6 @@
-from sqlalchemy import Column, Integer, Text, DateTime, ForeignKey
+from sqlalchemy import Boolean, Column, Date, DateTime, ForeignKey, Integer, Text, false
 from sqlalchemy.orm import relationship
-from datetime import datetime
+from datetime import date, datetime
 
 from app.database import Base
 
@@ -11,8 +11,20 @@ class Post(Base):
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     memo = Column(Text, nullable=True)
+    is_public = Column(
+        Boolean,
+        nullable=False,
+        default=False,
+        server_default=false(),
+    )
+    cooked_date = Column(Date, nullable=False, default=date.today)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow)
 
     user = relationship("User", back_populates="posts")
     photos = relationship("Photo", back_populates="post")
+    likes = relationship(
+        "Like",
+        back_populates="post",
+        cascade="all, delete-orphan",
+    )

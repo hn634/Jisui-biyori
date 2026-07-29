@@ -10,6 +10,7 @@ import {
   FiLogOut,
 } from "react-icons/fi";
 import api from "../api/api";
+import { getPhotoUrl } from "../utils/photoUrl";
 
 function PlumStamp() {
   return <img src="/plum.svg" alt="" className="plum-stamp" />;
@@ -49,13 +50,6 @@ export default function Home() {
   };
 
   useEffect(() => {
-    const token = localStorage.getItem("access_token");
-
-    if (!token) {
-      navigate("/");
-      return;
-    }
-
     fetchPosts();
     fetchPhotos();
     fetchCurrentUser();
@@ -63,32 +57,29 @@ export default function Home() {
 
   const fetchPosts = async () => {
     try {
-      const token = localStorage.getItem("access_token");
-
-      const response = await api.get("/api/posts", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await api.get("/api/posts");
 
       setPosts(response.data);
 
-      const likeResults = await Promise.all(
-        response.data.map((post) =>
-          api.get(`/api/likes/${post.id}`, {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }),
-        ),
-      );
+      const postIds = response.data.map((post) => post.id);
+
+      if (postIds.length === 0) {
+        setLikeMap({});
+        return;
+      }
+
+      const likeResponse = await api.get("/api/likes", {
+        params: {
+          post_ids: postIds.join(","),
+        },
+      });
 
       const newLikeMap = {};
 
-      likeResults.forEach((result) => {
-        newLikeMap[result.data.post_id] = {
-          likeCount: result.data.like_count,
-          likedByMe: result.data.liked_by_me,
+      likeResponse.data.forEach((likeInfo) => {
+        newLikeMap[likeInfo.post_id] = {
+          likeCount: likeInfo.like_count,
+          likedByMe: likeInfo.liked_by_me,
         };
       });
 
@@ -109,13 +100,7 @@ export default function Home() {
 
   const fetchCurrentUser = async () => {
     try {
-      const token = localStorage.getItem("access_token");
-
-      const response = await api.get("/api/auth/me", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await api.get("/api/auth/me");
 
       setCurrentUser(response.data);
     } catch (error) {
@@ -132,32 +117,15 @@ export default function Home() {
     event.stopPropagation();
 
     try {
-      const token = localStorage.getItem("access_token");
       const likeInfo = likeMap[postId];
 
       if (likeInfo?.likedByMe) {
-        await api.delete(`/api/likes/${postId}`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+        await api.delete(`/api/likes/${postId}`);
       } else {
-        await api.post(
-          `/api/likes/${postId}`,
-          {},
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          },
-        );
+        await api.post(`/api/likes/${postId}`, {});
       }
 
-      const response = await api.get(`/api/likes/${postId}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await api.get(`/api/likes/${postId}`);
 
       setLikeMap((prevLikeMap) => ({
         ...prevLikeMap,
@@ -173,7 +141,7 @@ export default function Home() {
   };
 
   const getPostDate = (post) => {
-    return new Date(post.cooked_date || post.created_at);
+    return new Date(`${post.cooked_date}T00:00:00`);
   };
 
   const getPostDay = (post) => {
@@ -190,16 +158,6 @@ export default function Home() {
         postDate.getDate() === day
       );
     });
-  };
-
-  const getPhotoUrl = (photoUrl) => {
-    if (!photoUrl) {
-      return "";
-    }
-
-    const normalizedPath = photoUrl.replaceAll("\\", "/").replace(/^\/+/, "");
-
-    return `${process.env.REACT_APP_API_BASE_URL}/${normalizedPath}`;
   };
 
   const displayedPosts = selectedDay

@@ -12,6 +12,7 @@ class Photo(Base):
         post_id = Column(Integer, ForeignKey("posts.id"), nullable=True)
         photo_url = Column(String, nullable=False)
         original_filename = Column(String, nullable=True)
+        content_type = Column(String, nullable=True)
         created_at = Column(DateTime, default=datetime.utcnow)
 
         user = relationship("User", back_populates="photos")

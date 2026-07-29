@@ -2,6 +2,16 @@ import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { FiImage, FiX } from "react-icons/fi";
 import api from "../api/api";
+import { getPhotoUrl } from "../utils/photoUrl";
+
+function getTodayDate() {
+  const today = new Date();
+  const year = today.getFullYear();
+  const month = String(today.getMonth() + 1).padStart(2, "0");
+  const day = String(today.getDate()).padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
+}
 
 export default function PostForm() {
   const { postId } = useParams();
@@ -10,6 +20,8 @@ export default function PostForm() {
   const isEditMode = Boolean(postId);
 
   const [memo, setMemo] = useState("");
+  const [isPublic, setIsPublic] = useState(false);
+  const [cookedDate, setCookedDate] = useState(getTodayDate());
   const [photo, setPhoto] = useState(null);
   const [previewUrl, setPreviewUrl] = useState("");
   const [isLoading, setIsLoading] = useState(isEditMode);
@@ -21,32 +33,21 @@ export default function PostForm() {
 
     const fetchPostForEdit = async () => {
       try {
-        const token = localStorage.getItem("access_token");
-
-        if (!token) {
-          navigate("/");
-          return;
-        }
-
         const [postResponse, photosResponse] = await Promise.all([
-          api.get(`/api/posts/${postId}`, {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }),
+          api.get(`/api/posts/${postId}`),
           api.get("/api/photos"),
         ]);
 
         setMemo(postResponse.data.memo || "");
+        setIsPublic(postResponse.data.is_public);
+        setCookedDate(postResponse.data.cooked_date);
 
         const currentPhoto = photosResponse.data.find(
           (item) => item.post_id === Number(postId),
         );
 
         if (currentPhoto) {
-          const photoPath = currentPhoto.photo_url.replace("\\", "/");
-
-          setPreviewUrl(`http://127.0.0.1:8000/${photoPath}`);
+          setPreviewUrl(getPhotoUrl(currentPhoto.photo_url));
         }
       } catch (error) {
         console.error(error);
@@ -78,24 +79,13 @@ export default function PostForm() {
 
   const handleSubmit = async () => {
     try {
-      const token = localStorage.getItem("access_token");
-
-      if (!token) {
-        alert("ログイン情報がありません");
-        navigate("/");
-        return;
-      }
-
       if (isEditMode) {
         await api.put(
           `/api/posts/${postId}`,
           {
             memo,
-          },
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
+            is_public: isPublic,
+            cooked_date: cookedDate,
           },
         );
 
@@ -111,12 +101,7 @@ export default function PostForm() {
 
         formData.append("file", photo);
 
-        const photoResponse = await api.post("/api/photos", formData, {
-          headers: {
-            "Content-Type": "multipart/form-data",
-            Authorization: `Bearer ${token}`,
-          },
-        });
+        const photoResponse = await api.post("/api/photos", formData);
 
         photoId = photoResponse.data.id;
       }
@@ -126,11 +111,8 @@ export default function PostForm() {
         {
           memo,
           photo_id: photoId,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+          is_public: isPublic,
+          cooked_date: cookedDate,
         },
       );
 
@@ -258,6 +240,18 @@ export default function PostForm() {
           </label>
         )}
 
+        <label className="post-form-label" htmlFor="cooked-date">
+          作った日
+        </label>
+
+        <input
+          id="cooked-date"
+          type="date"
+          className="post-form-date"
+          value={cookedDate}
+          onChange={(event) => setCookedDate(event.target.value)}
+        />
+
         <label className="post-form-label" htmlFor="memo">
           ひとこと
         </label>
@@ -269,6 +263,20 @@ export default function PostForm() {
           value={memo}
           onChange={(event) => setMemo(event.target.value)}
         />
+
+        <label className="post-form-share">
+          <input
+            type="checkbox"
+            checked={isPublic}
+            onChange={(event) => setIsPublic(event.target.checked)}
+          />
+          <span>
+            <strong>みんなに共有する</strong>
+            <small>
+              オンにすると、ほかの人の「みんなのごはん」に表示されます
+            </small>
+          </span>
+        </label>
 
         <button
           type="button"

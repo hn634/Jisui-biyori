@@ -11,6 +11,12 @@ from jose import jwt, JWTError
 
 from fastapi.security import OAuth2PasswordBearer
 
+from app.config import SECRET_KEY
+
+
+ALGORITHM = "HS256"
+ACCESS_TOKEN_EXPIRE_MINUTES = 30
+
 router = APIRouter(
     prefix="/api/auth",
     tags=["Auth"]
@@ -19,10 +25,6 @@ router = APIRouter(
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login")
-
-SECRET_KEY = "jisui-biyori-secret-key"
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
 
 def create_access_token(data: dict):
@@ -81,8 +83,6 @@ def signup(user: UserCreate, db: Session = Depends(get_db)):
             status_code=400,
             detail="パスワードは72バイト以内にしてください"
         )
-
-    print(len(user.password.encode("utf-8")))
 
     hashed_password = pwd_context.hash(user.password)
 

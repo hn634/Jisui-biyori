@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
@@ -23,7 +25,9 @@ def create_post(
 ):
     new_post = Post(
         user_id=current_user.id,
-        memo=post.memo
+        memo=post.memo,
+        is_public=post.is_public,
+        cooked_date=post.cooked_date,
     )
 
     db.add(new_post)
@@ -48,9 +52,12 @@ def get_posts(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    posts = db.query(Post).filter(
-        Post.user_id == current_user.id
-    ).all()
+    posts = (
+        db.query(Post)
+        .filter(Post.user_id == current_user.id)
+        .order_by(Post.cooked_date.desc())
+        .all()
+    )
 
     return posts
 
@@ -61,8 +68,11 @@ def get_community_posts(
 ):
     posts = (
         db.query(Post)
-        .filter(Post.user_id != current_user.id)
-        .order_by(Post.created_at.desc())
+        .filter(
+            Post.user_id != current_user.id,
+            Post.is_public.is_(True),
+        )
+        .order_by(Post.cooked_date.desc())
         .all()
     )
 
@@ -107,6 +117,9 @@ def update_post(
         )
 
     post.memo = post_data.memo
+    post.is_public = post_data.is_public
+    post.cooked_date = post_data.cooked_date
+    post.updated_at = datetime.utcnow()
 
     db.commit()
     db.refresh(post)
@@ -130,6 +143,9 @@ def delete_post(
             status_code=404,
             detail="投稿が見つかりません"
         )
+
+    for photo in post.photos:
+        photo.post_id = None
 
     db.delete(post)
     db.commit()
