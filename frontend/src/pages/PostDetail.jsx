@@ -70,6 +70,16 @@ export default function PostDetail() {
     }
   };
 
+  const getPhotoUrl = (photoUrl) => {
+    if (!photoUrl) {
+      return "";
+    }
+
+    const normalizedPath = photoUrl.replaceAll("\\", "/").replace(/^\/+/, "");
+
+    return `${process.env.REACT_APP_API_BASE_URL}/${normalizedPath}`;
+  };
+
   if (!post) {
     return (
       <div className="post-detail-page">
@@ -110,11 +120,8 @@ export default function PostDetail() {
 
         {postPhoto ? (
           <img
-            src={`http://127.0.0.1:8000/${postPhoto.photo_url.replace(
-              "\\",
-              "/",
-            )}`}
-            alt={postPhoto.original_filename}
+            src={getPhotoUrl(postPhoto.photo_url)}
+            alt={postPhoto.original_filename || "ごはんの写真"}
             className="post-detail-image"
           />
         ) : (
