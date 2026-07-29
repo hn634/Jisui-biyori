@@ -10,6 +10,7 @@ import {
   FiLogOut,
 } from "react-icons/fi";
 import api from "../api/api";
+import { getPhotoUrl } from "../utils/photoUrl";
 
 function PlumStamp() {
   return <img src="/plum.svg" alt="" className="plum-stamp" />;
@@ -190,16 +191,6 @@ export default function Home() {
         postDate.getDate() === day
       );
     });
-  };
-
-  const getPhotoUrl = (photoUrl) => {
-    if (!photoUrl) {
-      return "";
-    }
-
-    const normalizedPath = photoUrl.replaceAll("\\", "/").replace(/^\/+/, "");
-
-    return `${process.env.REACT_APP_API_BASE_URL}/${normalizedPath}`;
   };
 
   const displayedPosts = selectedDay

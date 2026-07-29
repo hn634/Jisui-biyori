@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { FiArrowLeft } from "react-icons/fi";
 import api from "../api/api";
+import { getPhotoUrl } from "../utils/photoUrl";
 
 export default function Community() {
   const [posts, setPosts] = useState([]);
@@ -154,16 +155,6 @@ export default function Community() {
     const date = new Date(dateText);
 
     return `${date.getFullYear()}年${date.getMonth() + 1}月${date.getDate()}日`;
-  };
-
-  const getPhotoUrl = (photoUrl) => {
-    if (!photoUrl) {
-      return "";
-    }
-
-    const normalizedPath = photoUrl.replaceAll("\\", "/").replace(/^\/+/, "");
-
-    return `${process.env.REACT_APP_API_BASE_URL}/${normalizedPath}`;
   };
 
   return (

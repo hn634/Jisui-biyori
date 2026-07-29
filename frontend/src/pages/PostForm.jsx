@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { FiImage, FiX } from "react-icons/fi";
 import api from "../api/api";
+import { getPhotoUrl } from "../utils/photoUrl";
 
 export default function PostForm() {
   const { postId } = useParams();
@@ -46,9 +47,7 @@ export default function PostForm() {
         );
 
         if (currentPhoto) {
-          const photoPath = currentPhoto.photo_url.replace("\\", "/");
-
-          setPreviewUrl(`http://127.0.0.1:8000/${photoPath}`);
+          setPreviewUrl(getPhotoUrl(currentPhoto.photo_url));
         }
       } catch (error) {
         console.error(error);

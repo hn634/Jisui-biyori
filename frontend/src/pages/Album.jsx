@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { FiArrowLeft } from "react-icons/fi";
 import api from "../api/api";
+import { getPhotoUrl } from "../utils/photoUrl";
 
 export default function Album() {
   const [photos, setPhotos] = useState([]);
@@ -102,9 +103,7 @@ export default function Album() {
                       onClick={() => navigate(`/detail/${photo.post_id}`)}
                     >
                       <img
-                        src={`${process.env.REACT_APP_API_BASE_URL}/${photo.photo_url
-                          .replaceAll("\\", "/")
-                          .replace(/^\/+/, "")}`}
+                        src={getPhotoUrl(photo.photo_url)}
                         alt={photo.original_filename || "ごはんの写真"}
                       />
                     </button>
