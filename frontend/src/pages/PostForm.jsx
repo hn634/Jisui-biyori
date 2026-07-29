@@ -10,6 +10,7 @@ export default function PostForm() {
   const isEditMode = Boolean(postId);
 
   const [memo, setMemo] = useState("");
+  const [isPublic, setIsPublic] = useState(false);
   const [photo, setPhoto] = useState(null);
   const [previewUrl, setPreviewUrl] = useState("");
   const [isLoading, setIsLoading] = useState(isEditMode);
@@ -38,6 +39,7 @@ export default function PostForm() {
         ]);
 
         setMemo(postResponse.data.memo || "");
+        setIsPublic(postResponse.data.is_public);
 
         const currentPhoto = photosResponse.data.find(
           (item) => item.post_id === Number(postId),
@@ -91,6 +93,7 @@ export default function PostForm() {
           `/api/posts/${postId}`,
           {
             memo,
+            is_public: isPublic,
           },
           {
             headers: {
@@ -126,6 +129,7 @@ export default function PostForm() {
         {
           memo,
           photo_id: photoId,
+          is_public: isPublic,
         },
         {
           headers: {
@@ -269,6 +273,20 @@ export default function PostForm() {
           value={memo}
           onChange={(event) => setMemo(event.target.value)}
         />
+
+        <label className="post-form-share">
+          <input
+            type="checkbox"
+            checked={isPublic}
+            onChange={(event) => setIsPublic(event.target.checked)}
+          />
+          <span>
+            <strong>みんなに共有する</strong>
+            <small>
+              オンにすると、ほかの人の「みんなのごはん」に表示されます
+            </small>
+          </span>
+        </label>
 
         <button
           type="button"

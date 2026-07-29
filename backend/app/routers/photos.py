@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.models.photo import Photo
+from app.models.post import Post
 from app.models.user import User
 from app.routers.auth import get_current_user
 
@@ -104,7 +105,11 @@ def get_community_photos(
 ):
     photos = (
         db.query(Photo)
-        .filter(Photo.user_id != current_user.id)
+        .join(Post, Photo.post_id == Post.id)
+        .filter(
+            Photo.user_id != current_user.id,
+            Post.is_public.is_(True),
+        )
         .all()
     )
 

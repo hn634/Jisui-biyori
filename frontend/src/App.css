@@ -790,6 +790,38 @@ h2 {
   color: #b09d92;
 }
 
+.post-form-share {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-top: 24px;
+  color: #735a4d;
+  cursor: pointer;
+}
+
+.post-form-share input {
+  margin-top: 4px;
+  accent-color: #8f5555;
+}
+
+.post-form-share span {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.post-form-share strong {
+  font-size: 14px;
+  font-weight: 400;
+  letter-spacing: 0.08em;
+}
+
+.post-form-share small {
+  color: #9a877c;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
 .post-form-submit {
   width: 94%;
   display: block;

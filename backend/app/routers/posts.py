@@ -23,7 +23,8 @@ def create_post(
 ):
     new_post = Post(
         user_id=current_user.id,
-        memo=post.memo
+        memo=post.memo,
+        is_public=post.is_public,
     )
 
     db.add(new_post)
@@ -61,7 +62,10 @@ def get_community_posts(
 ):
     posts = (
         db.query(Post)
-        .filter(Post.user_id != current_user.id)
+        .filter(
+            Post.user_id != current_user.id,
+            Post.is_public.is_(True),
+        )
         .order_by(Post.created_at.desc())
         .all()
     )
@@ -107,6 +111,7 @@ def update_post(
         )
 
     post.memo = post_data.memo
+    post.is_public = post_data.is_public
 
     db.commit()
     db.refresh(post)
