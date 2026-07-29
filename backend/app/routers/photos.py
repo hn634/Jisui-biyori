@@ -1,6 +1,5 @@
-from datetime import datetime
 from pathlib import Path
-import shutil
+from uuid import uuid4
 
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
 from sqlalchemy.orm import Session
@@ -21,6 +20,14 @@ router = APIRouter(
 UPLOAD_DIR = Path("uploads")
 UPLOAD_DIR.mkdir(exist_ok=True)
 
+ALLOWED_CONTENT_TYPES = {
+    "image/jpeg": ".jpg",
+    "image/png": ".png",
+    "image/webp": ".webp",
+}
+MAX_FILE_SIZE = 5 * 1024 * 1024
+CHUNK_SIZE = 1024 * 1024
+
 
 @router.post("")
 def upload_photo(
@@ -28,17 +35,40 @@ def upload_photo(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
-    filename = f"{timestamp}_{file.filename}"
+    extension = ALLOWED_CONTENT_TYPES.get(file.content_type)
+
+    if not extension:
+        raise HTTPException(
+            status_code=400,
+            detail="JPEG / PNG / WebP の画像のみアップロードできます",
+        )
+
+    filename = f"{uuid4().hex}{extension}"
     file_path = UPLOAD_DIR / filename
 
-    with open(file_path, "wb") as buffer:
-        shutil.copyfileobj(file.file, buffer)
+    try:
+        file_size = 0
+
+        with file_path.open("wb") as buffer:
+            while chunk := file.file.read(CHUNK_SIZE):
+                file_size += len(chunk)
+
+                if file_size > MAX_FILE_SIZE:
+                    raise HTTPException(
+                        status_code=400,
+                        detail="ファイルサイズは5MB以内にしてください",
+                    )
+
+                buffer.write(chunk)
+    except Exception:
+        file_path.unlink(missing_ok=True)
+        raise
 
     photo = Photo(
         user_id=current_user.id,
-        photo_url=str(file_path),
+        photo_url=file_path.as_posix(),
         original_filename=file.filename,
+        content_type=file.content_type,
     )
 
     db.add(photo)
@@ -51,6 +81,7 @@ def upload_photo(
     "post_id": photo.post_id,
     "photo_url": photo.photo_url,
     "original_filename": photo.original_filename,
+    "content_type": photo.content_type,
     "created_at": photo.created_at,
 }
 
